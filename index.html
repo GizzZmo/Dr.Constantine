@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loopens Tyranni og Frihet // SYSTEM.INIT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #050505;
+            color: #E2E8F0;
+            background-image: 
+                linear-gradient(rgba(0, 255, 65, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 65, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+        h1, h2, h3, h4, h5, .cyber-font {
+            font-family: 'Share Tech Mono', monospace;
+            text-transform: uppercase;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        
+        .nav-link {
+            border-left: 2px solid transparent;
+            transition: all 0.2s ease;
+            color: #A0AEC0;
+        }
+        .nav-link:hover {
+            background-color: rgba(0, 255, 65, 0.05);
+            color: #00FF41;
+            text-shadow: 0 0 5px rgba(0,255,65,0.5);
+        }
+        .nav-link.active {
+            background-color: rgba(0, 255, 65, 0.1);
+            border-left: 2px solid #00FF41;
+            font-weight: 600;
+            color: #00FF41;
+            box-shadow: inset 20px 0 20px -20px rgba(0,255,65,0.4);
+        }
+
+        .cyber-panel {
+            background-color: #0F0F13;
+            border: 1px solid rgba(0, 255, 65, 0.2);
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.05);
+        }
+        
+        .cyber-input {
+            background-color: #050505;
+            border: 1px solid #333;
+            color: #00FF41;
+            font-family: 'Share Tech Mono', monospace;
+            transition: all 0.2s;
+        }
+        .cyber-input:focus {
+            border-color: #00FF41;
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+            outline: none;
+        }
+        .cyber-input::placeholder {
+            color: #4A5568;
+        }
+        
+        .cyber-button {
+            background-color: transparent;
+            border: 1px solid #00FF41;
+            color: #00FF41;
+            font-family: 'Share Tech Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .cyber-button:hover {
+            background-color: #00FF41;
+            color: #000;
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.6);
+        }
+        .cyber-button:disabled {
+            border-color: #333;
+            color: #333;
+            background-color: transparent;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #050505; border-left: 1px solid #1a1a1a; }
+        ::-webkit-scrollbar-thumb { background: #00FF41; border-radius: 0px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00F0FF; }
+
+        .content-fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        ::selection { background: #00FF41; color: #000; }
+    </style>
+</head>
+<body class="flex flex-col md:flex-row h-screen overflow-hidden">
+
+    <div class="md:hidden bg-[#0A0A0A] border-b border-[#00FF41]/30 text-[#00FF41] p-4 flex justify-between items-center shadow-md z-20 relative">
+        <h1 class="text-lg cyber-font">SYS.LOOP_TYRANNI</h1>
+        <button id="mobileMenuBtn" class="text-2xl focus:outline-none p-2 hover:text-white transition">&#9776;</button>
+    </div>
+
+    <nav id="sidebar" class="bg-[#0A0A0A] w-full md:w-80 flex-shrink-0 h-full overflow-y-auto border-r border-[#00FF41]/20 shadow-[5px_0_15px_rgba(0,0,0,0.5)] absolute md:relative z-10 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+        <div class="p-6">
+            <h1 class="text-2xl cyber-font text-[#00FF41] mb-2 drop-shadow-[0_0_5px_rgba(0,255,65,0.5)]">LOOPENS_TYRANNI<br>OG_FRIHET</h1>
+            <p class="text-xs text-gray-500 mb-6 cyber-font">v3.1.00 // Dyp_Analyse</p>
+            <div class="space-y-1 cyber-font" id="navContainer">
+                </div>
+        </div>
+    </nav>
+
+    <main class="flex-1 h-full overflow-y-auto relative" id="mainScrollArea">
+        <div class="max-w-4xl mx-auto p-6 md:p-12 pb-24 content-fade-in" id="contentArea">
+        </div>
+    </main>
+
+    <script>
+        const appData = {
+            chapters: [
+                { id: 'intro', title: '00. Forside & Forord', type: 'text' },
+                { id: 'ch1', title: '01. Innledning', type: 'text' },
+                { id: 'ch2', title: '02. Matematikken', type: 'text' },
+                { id: 'ch3', title: '03. Perseptuell dynamikk', type: 'chart', chartId: 'tensionChart' },
+                { id: 'ch4', title: '04. Taksonomi', type: 'chart', chartId: 'radarChart' },
+                { id: 'ch5', title: '05. Broen', type: 'text' },
+                { id: 'ch6', title: '06. Albumets røde tråd', type: 'text' },
+                { id: 'ch7', title: '07. Teknologi', type: 'text' },
+                { id: 'ch8', title: '08. Konklusjon', type: 'text' },
+                { id: 'portfolio', title: '>> Empirisk Lydarkiv', type: 'interactive' },
+                { id: 'summary', title: '>> Oppsummering', type: 'text' },
+                { id: 'glossary', title: '>> Ordliste (Datakjerne)', type: 'interactive' },
+                { id: 'ai-lab', title: '>> AI Komposisjons-lab', type: 'interactive' },
+                { id: 'ai-lyrics', title: '>> Lyrisk Ledemotiv', type: 'interactive' },
+                { id: 'ai-lyric-analyzer', title: '>> AI Tekst-analysator', type: 'interactive' },
+                { id: 'ai-daw-mixer', title: '>> DAW Mikse-assistent', type: 'interactive' },
+                { id: 'ai-arranger', title: '>> Arrangement-Algoritme', type: 'interactive' },
+                { id: 'ai-synth', title: '>> Synth-Arkitekt', type: 'interactive' },
+                { id: 'ai-chat', title: '>> Spør Forfatteren', type: 'interactive' },
+                { id: 'outro', title: 'EOF. Siste ord', type: 'text' }
+            ],
+            glossaryTerms: [
+                { term: "DAW (Digital Audio Workstation)", definition: "Programvare (f.eks. Logic, Cubase, Ableton) brukt til å skulpturere og sekvensere lyd matematisk og visuelt." },
+                { term: "Expectancy Theory", definition: "Huron's teori som kartlegger hvordan hjernens dopamin-nettverk belønner lytteren når spesifikke musikalske forventninger innfris eller brytes på en trygg måte." },
+                { term: "Modal Mixture", definition: "En teknikk hvor man midlertidig 'låner' akkorder fra en parallell toneart (f.eks. Eb dur i en C dur-progresjon) for å fremtvinge en kognitiv re-orientering." },
+                { term: "Neo-Riemannsk Teori", definition: "Et geometrisk rammeverk som forklarer akkordprogresjoner gjennom minimal bevegelse i enkeltstemmer (PLR-operasjoner) heller enn deres funksjon i en tradisjonell skala." },
+                { term: "Parsimonious Voice Leading", definition: "Å bytte harmonisk tilstand med absolutt minimal friksjon, typisk ved å bare flytte én eller to toner et halvt trinn." },
+                { term: "Pitch-Class Set Theory", definition: "Kategorisering av akkorder som matematiske mengder (f.eks. [0,3,7]), som fjerner illusjonen om dur/moll-hierarkier og avdekker rå intervall-spenning." },
+                { term: "Prosodi", definition: "Den intrikate synkroniseringen mellom språkets iboende fonetiske rytme og musikkens underliggende mikrotiming." },
+                { term: "Spektromorfologi", definition: "Studien av hvordan en lyds klangfarge og spektrale masse (f.eks. vreng/distortion) utvikler seg som en fysisk form over tid." },
+                { term: "Subtraktiv dynamikk", definition: "Den kalkulerte fjerningen av frekvens-energi (ofte i bassområdet) for å skape et psykoakustisk vakuum før 'The Drop'." },
+                { term: "Timbral Modulasjon", definition: "Når overgangen mellom seksjoner primært drives av endringer i tekstur, rom og klang, mens akkorder og tempo forblir låst." }
+            ],
+            content: {
+                'intro': `
+                    <div class="text-center mb-16 mt-8">
+                        <p class="text-sm tracking-widest text-[#00F0FF] mb-4 cyber-font">SYS.DOKTORAVHANDLING // EMPIRISK_STUDIE_V3</p>
+                        <h1 class="text-4xl md:text-6xl cyber-font text-[#00FF41] mb-6 leading-tight drop-shadow-[0_0_8px_rgba(0,255,65,0.6)]">LOOPENS TYRANNI <br><span class="text-[#FF003C]">&</span> FRIHET</h1>
+                        <p class="text-lg text-gray-300 font-light max-w-2xl mx-auto border-l-2 border-[#00FF41] pl-4 text-left">En dybdeanalyse av harmonisk statikk, perseptuell manipulasjon og narrativ progresjon i moderne, grid-låst populærmusikk.</p>
+                    </div>
+                    <div class="cyber-panel p-8 md:p-12 mt-12">
+                        <h2 class="text-3xl cyber-font mb-4 text-[#00F0FF]">&gt; FORORD.exe</h2>
+                        <p class="text-gray-500 cyber-font mb-8 pb-4 border-b border-[#333]">Opphav: Dr. Jon-Arve Constantine // Produsent & Musikkviter</p>
+                        <div class="space-y-6 text-gray-300 leading-relaxed text-lg font-light">
+                            <p>Musikken har alltid vært en refleksjon av teknologien som fanger den. Da vi gikk fra papirnoter til magnetbånd, endret vi form. Da vi gikk fra bånd til det digitale rutenettet (The Grid), endret vi DNA-et til selve komposisjonen. Dette har ført oss til vår tids største musikalske paradoks: Hvordan kan musikk som er strippet ned til fire repeterende akkorder i et urokkelig, matematisk låst tempo, makte å formidle de dypeste menneskelige tragedier og euforiske triumfer?</p>
+                            <p>I tiår har den akademiske eliten, preget av en utdatert beundring for lineær klassisk musikk, avfeid moderne sjangre som nu-metal, trap og kommersiell pop som harmonisk fattige. De har lyttet på feil akse. Denne avhandlingen, støttet av et massivt arkiv på over 1100 egenproduserte spor, krever at vi kalibrerer våre auditive sensorer på nytt.</p>
+                            <p>Vi skal dekonstruere "loopen". Vi skal bevise at når den horisontale utviklingen strupes, eksploderer kompleksiteten på den vertikale aksen. Gjennom Allen Fortes sett-teori, spektral maskering og prosodisk mikrotiming skal vi se den rå koden bak magien.</p>
+                            <p>Dette er ikke bare et teoretisk rammeverk; det er en teknisk manual for fremtidens lydarkitekter. Velkommen til maskinen.</p>
+                        </div>
+                    </div>
+                `,
+                'ch1': `
+                    <p class="mb-8 text-gray-400 bg-[#0A0A0C] border border-[#333] p-5 border-l-4 border-l-[#FF003C] text-md font-light">[INFO_LOG]: Etablering av hovedkonflikt. Den lineære reisens død, og loopens fødsel som et nytt emosjonelt fundament.</p>
+                    <h2 class="text-4xl cyber-font text-[#00FF41] mb-8 border-b-2 border-[#00FF41]/30 pb-4">01. INNLEDNING</h2>
+                    <h3 class="text-2xl cyber-font mt-10 mb-4 text-[#00F0FF]">&gt; 1.1 REPETISJONENS_PARADOKS</h3>
+                    <p class="mb-5 text-gray-300 leading-relaxed text-lg font-light">I det 21. århundrets musikalske økosystem har den tradisjonelle harmoniske reisen – med sine komplekse modulasjoner og sonate-strukturer – kapitulert for den sirkulære logikken: <strong class="text-[#00FF41] font-normal">loopen</strong>. Teknologiske og kommersielle krefter har presset frem formater som krever umiddelbar gjenkjennelse. Adorno (1941) advarte mot standardisering, og mente repetisjon ville passivisere lytteren. Adorno tok feil. Han forsto ikke at restriksjon avler innovasjon.</p>
+                    
+                    <div class="cyber-panel p-6 my-8 border-l-4 border-l-[#00F0FF]">
+                        <p class="text-lg cyber-font text-[#00F0FF] italic text-center">"Når de harmoniske variablene minimeres til en statisk loop, hvilke andre algoritmer i lydbildet overtar ansvaret for strukturell og emosjonell kontrast?"</p>
+                    </div>
+                    
+                    <p class="mb-5 text-gray-300 leading-relaxed text-lg font-light">Middleton (1990) observerte at loopens sanne funksjon ikke er å stagnere, men å indusere en tilstand av "groove". Dette groove-et fungerer som en transe, et fundamentalt nullpunkt. Det er nettopp <em>fordi</em> loopen er forutsigbar, at produsenten kan manipulere de subtile makro-parametrene for å ryste lytteren til beinet når droppet omsider treffer.</p>
+                    
+                    <h3 class="text-2xl cyber-font mt-10 mb-4 text-[#00F0FF]">&gt; 1.2 HARMONISK_SEMENTERING_OG_DET_VERTIKALE_SKIFTET</h3>
+                    <p class="mb-5 text-gray-300 leading-relaxed text-lg font-light">Klassisk funksjonsharmoni analyserer spenning som et forhold mellom dominant og tonika. I sjangre som drue-tung R&B eller aggressiv metal, slutter akkordene å fungere som retningspiler. De blir i stedet <strong class="text-[#00FF41] font-normal">vektløse teksturflater</strong>. Når fire akkorder repeteres i 180 sekunder, slutter hjernen å lytte etter akkordskifter. Oppmerksomheten flyttes 90 grader: fra den horisontale tidsaksen (når kommer neste akkord?) til den vertikale spektralaksen (hvor tykk, bred og vrengt er denne akkorden akkurat nå?).</p>
+                    
+                    <h3 class="text-2xl cyber-font mt-10 mb-4 text-[#00F0FF]">&gt; 1.3 METODISK_KRYSSPPUNKT_FOR_SYSTEMANALYSE</h3>
+                    <p class="mb-5 text-gray-300 leading-relaxed text-lg font-light">For å reverse-engineere denne prosessen, kreves et tverrfaglig analyseverktøy som kombinerer maskinell logikk med nevrovitenskap:</p>
+                    <ul class="list-none space-y-4 mb-8 cyber-panel p-8">
+                        <li class="flex items-start"><span class="mr-4 text-[#FF003C] text-2xl leading-none">&raquo;</span> <div class="text-lg font-light text-gray-300"><strong class="text-white cyber-font">Kognitiv Psykoakustikk:</strong> Måling av hvordan hjernen kvantifiserer spenning basert på frekvensbortfall og auditiv maskering før et dropp.</div></li>
+                        <li class="flex items-start"><span class="mr-4 text-[#FF003C] text-2xl leading-none">&raquo;</span> <div class="text-lg font-light text-gray-300"><strong class="text-white cyber-font">Neo-Riemannsk Kartlegging:</strong> Geometrisk analyse av hvordan stemmeføring i loopen skaper sømløs rullering uten å fremprovosere tretthet.</div></li>
+                        <li class="flex items-start"><span class="mr-4 text-[#FF003C] text-2xl leading-none">&raquo;</span> <div class="text-lg font-light text-gray-300"><strong class="text-white cyber-font">Prosodisk Narratologi:</strong> Dekoding av vokalens mikrotiming og lyriske ledemotiver som binder et konseptalbum sammen over vidt forskjellige sjangre.</div></li>
+                    </ul>
+                `,
+                'ch2': `
+                    <p class="mb-8 text-gray-400 bg-[#0A0A0C] border border-[#333] p-5 border-l-4 border-l-[#FF003C] text-md font-light">[INFO_LOG]: Det abstrakte fundamentet. Akkorder betraktes ikke lenger som funksjoner i en skala, men som numeriske koordinater i et geometrisk rom.</p>
+                    <h2 class="text-4xl cyber-font text-[#00FF41] mb-8 border-b-2 border-[#00FF41]/30 pb-4">02. MATEMATIKKEN BAK LOOPEN</h2>
+                    
+                    <h3 class="text-2xl cyber-font mt-10 mb-4 text-[#00F0FF]">&gt; 2.1 PITCH-CLASS_SET_THEORY</h3>
+                    <p class="mb-5 text-gray-300 leading-relaxed text-lg font-light">Når vi forlater den tradisjonelle C-dur skalaens trygghet, må vi bruke Allen Fortes (1973) <em>Pitch-Class Set Theory</em>. Her strippes musikken for bias; en tone er kun et tall fra 0 til 11. En moll-treklang og en dur-treklang deler det samme numeriske potensialet, representert ved Prime Form <span class="text-[#00FF41] font-mono">[0, 3, 7]</span>.</p>
+                    <p class="mb-5 text-gray-300 leading-relaxed text-lg font-light">I moderne metal eller mørk elektronika fjerner produsenter ofte tersen for å skape emosjonell ambivalens. Vi står igjen med dyaden <span class="text-[#FF003C] font-mono">[0, 7]</span>. Grunnen til at en loop bestående av power chords (vi - IV - I - V) ikke kollapser, er at mangelen på definert ters tillater vokalen å påtvinge akkordene skiftende modalitet i sanntid. Loopen blir et speil for topplinjens matematiske intensjoner.</p>
+                    
+                    <div class="bg-[#050505] border border-[#00FF41]/30 text-white p-6 my-8 flex flex-col md:flex-row items-center justify-center md:space-x-12 space-y-6 md:space-y-0 font-mono shadow-[0_0_15px_rgba(0,255,65,0.1)]">
+                         <div class="text-center w-full md:w-auto">
+                             <div class="text-xs text-[#00F0FF] mb-2 uppercase tracking-widest border-b border-[#333] pb-2">Kompleks Akkord</div>
+                             <div class="text-3xl text-gray-300 mt-2">[0, 4, 7, 10, 14]</div>
+                         </div>
+                         <div class="text-4xl text-[#FF003C] hidden md:block">&rarr;</div>
+                         <div class="text-4xl text-[#FF003C] md:hidden">&darr;</div>
+                         <div class="text-center w-full md:w-auto">
+                             <div class="text-xs text-[#00F0FF] mb-2 uppercase tracking-widest border-b border-[#333] pb-2">Reduktiv Loop (Dyade)</div>
+                             <div class="text-3xl text-[#00FF41] drop-shadow-[0_0_5px_#00FF41] mt-2">[0, 7]</div>
+                         </div>
+                    </div>
+                    
+                    <h3 class="text-2xl cyber-font mt-10 mb-4 text-[#00F0FF]">&gt; 2.2 TONNETZ_OG_PLR-OPERASJONER</h3>
+                    <p class="mb-5 text-gray-300 leading-relaxed text-lg font-light">Hvordan kan fire akkorder spinne uendelig uten å trette ut hjernen? David Lewins (1987) <em>Neo-Riemannske transformasjonsteori</em> gir svaret via geometrisk stemmeføring i et "Tonnetz". Vi ser ikke på akkordens rot-sprang, men på <em>parsimonious voice leading</em> – den minimale fysiske avstanden enkeltstemmene må flytte seg.</p>
+                    <ul class="list-none space-y-2 mb-6 text-gray-300 font-light border-l-2 border-[#333] pl-4">
+                        <li><strong class="text-[#00F0FF] cyber-font">P (Parallel):</strong> C dur &harr; C moll. Kun tersen flyttes et halvt trinn.</li>
+                        <li><strong class="text-[#00F0FF] cyber-font">L (Leittonwechsel):</strong> C dur &harr; E moll. Grunntonen faller et halvt trinn.</li>
+                        <li><strong class="text-[#00F0FF] cyber-font">R (Relative):</strong> C dur &harr; A moll. Kvinten stiger et helt trinn.</li>
+                    </ul>
+                    <p class="mb-5 text-gray-300 leading-relaxed text-lg font-light">En standard loop som C - G - Am - F er i realiteten en serie med hyper-effektive bevegelser i Tonnetz-geometrien. Lytterens hjerne spores til å følge de statiske "lim-tonene" (common tones) som holdes over fra en akkord til den neste. Det er denne usynlige, matematiske tråden som skaper illusjonen av evig fremdrift, og som gjør at tempoet kan låses i et fast grid uten å føles statisk.</p>
+                `,
+                'ch3': `
+                    <p class="mb-8 text-gray-400 bg-[#0A0A0C] border border-[#333] p-5 border-l-4 border-l-[#FF003C] text-md font-light">[INFO_LOG]: Manipulasjon av nevro-kjemiske systemer. Hvordan fravær av frekvenser bygger spenning, og hvordan støy genererer dopamin.</p>
+                    <h2 class="text-4xl cyber-font text-[#00FF41] mb-8 border-b-2 border-[#00FF41]/30 pb-4">03. PERSEPTUELL DYNAMIKK</h2>
+                    
+                    <h3 class="text-2xl cyber-font mt-10 mb-4 text-[#00F0FF]">&gt; 3.1 EXPECTANCY_THEORY_I_DET_LÅSTE_GRIDET</h3>
+                    <p class="mb-5 text-gray-300 leading-relaxed text-lg font-light">David Huron (2006) demonstrerte at den menneskelige hjerne kontinuerlig genererer underbevisste prediksjoner om auditiv input. Dopamin – belønningshormonet – utløses primært i øyeblikket en forventning bekreftes på en tilfredsstillende måte, eller brytes på en ufarlig, overraskende måte. I klassisk musikk skjedde dette via overraskende akkordskifter (Deceptive Cadence). Men når loopen er statisk, <em>vet</em> hjernen nøyaktig hvilken akkord som kommer om 4 slag. Forventningsbruddet må derfor rutes via en annen protokoll: <strong class="text-white">Timbral Modulasjon</strong>.</p>
+                    
+                    <h3 class="text-2xl cyber-font mt-10 mb-4 text-[#00F0FF]">&gt; 3.2 THE_DROP // AUDITIV_MASKERING_OG_VAKUUM</h3>
+                    <p class="mb-5 text-gray-300 leading-relaxed text-lg font-light">Det vi i EDM, Nu-Metal og Trap refererer til som "The Drop", er en øvelse i ekstrem fysisk spenningsbygging. Dette oppnås matematisk gjennom <em>subtraktiv dynamikk</em>. I den kritiske overgangen (Pre-Chorus Pivot), aktiverer produsenten High-Pass filtre. Ved bevisst å drepe all frekvensenergi under 150 Hz i de siste to taktene, fremtvinges et psykoakustisk vakuum. Hjernen, som har blitt avhengig av bassens tyngde (sub-frekvenser) gjennom verset, registrerer dette fraværet som en "krise".</p>
+                    <p class="mb-5 text-gray-300 leading-relaxed text-lg font-light">Spenningen (T) stiger proporsjonalt med varigheten av bass-mangelen, kombinert med addisjonen av "Risers" (hvitt støy / white noise som feier oppover spekteret for å aktivere faresensorer i amygdala). Når refrenget ("Droppet") endelig treffer på slag 1, deaktiveres filtrene, og det fulle spektrale spekteret oversvømmer det auditive systemet. Effekten er katharsis. Akkordene har aldri endret seg, men det emosjonelle landskapet er totalskadd og gjenoppbygd på millisekunder.</p>
+                    
+                    <div class="chart-container cyber-panel p-4 mt-8 relative">
+                        <div class="absolute top-2 left-2 text-[#00FF41] cyber-font text-xs opacity-50">SYS.CHART_RENDER</div>
+                        <canvas id="tensionChart"></canvas>
+                    </div>
+                    <p class="text-xs text-center text-[#00F0FF] cyber-font mt-2 mb-8">Figur 3.1 // Kvantifisering av psykoakustisk spenning vs. sub-frekvent fravær frem mot droppet.</p>
+                `,
+                'ch4': `
+                    <p class="mb-8 text-gray-400 bg-[#0A0A0C] border border-[#333] p-5 border-l-4 border-l-[#FF003C] text-md font-light">[INFO_LOG]: Systematisk kategorisering av hvordan ulike musikalske kulturer utnytter loopens arkitektur via unike auditive parametere.</p>
+                    <h2 class="text-4xl cyber-font text-[#00FF41] mb-8 border-b-2 border-[#00FF41]/30 pb-4">04. TAKSONOMI: VERS_TIL_REFRENG</h2>
+                    <p class="mb-5 text-gray-300 leading-relaxed text-lg font-light">En dyp analyse av over 1100 spor (Constantine, 2026) avslører at selv om R&B, Rap og Metal låner de eksakt samme fire akkordene i samme tempo, anvender de divergente modulasjons-strategier for å krysse terskelen mellom Vers (stabilitet) og Refreng (eksplosjon).</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 my-10">
+                        <div class="cyber-panel p-6 border-t-4 border-t-[#00F0FF] relative overflow-hidden group">
+                            <div class="absolute inset-0 bg-[#00F0FF] opacity-0 group-hover:opacity-5 transition-opacity"></div>
+                            <h4 class="cyber-font text-[#00F0FF] text-xl mb-3">&gt; POP & R&B</h4>
+                            <p class="text-gray-400 font-light leading-relaxed text-sm mb-3"><strong>Strategi:</strong> Melodisk Registerendring og Polyfoni.</p>
+                            <p class="text-gray-500 font-light leading-relaxed text-xs">Verset sentreres rundt grunntonen i brystklang, og skaper intimitet. I overgangen til refrenget flyttes melodien en oktav opp, og harmoniske lag (layering) legges til for å skape koral-tykkelse (spektral fylde i mellomtonen).</p>
+                        </div>
+                        <div class="cyber-panel p-6 border-t-4 border-t-[#FF003C] relative overflow-hidden group">
+                            <div class="absolute inset-0 bg-[#FF003C] opacity-0 group-hover:opacity-5 transition-opacity"></div>
+                            <h4 class="cyber-font text-[#FF003C] text-xl mb-3">&gt; METAL & ROCK</h4>
+                            <p class="text-gray-400 font-light leading-relaxed text-sm mb-3"><strong>Strategi:</strong> Spektromorfologi og Auditiv Ruhet.</p>
+                            <p class="text-gray-500 font-light leading-relaxed text-xs">Verset benytter 'clean' eller 'palm-muted' gitarer med kontrollert transient-informasjon. På slag 1 i refrenget maksimeres <em>distortion</em> (klipping av lydbølgen). Dette genererer massive mengder uharmoniske overtoner (Roughness), som det primitive nervesystemet assosierer med overveldende aggresjon og makt.</p>
+                        </div>
+                        <div class="cyber-panel p-6 border-t-4 border-t-[#00FF41] relative overflow-hidden group">
+                            <div class="absolute inset-0 bg-[#00FF41] opacity-0 group-hover:opacity-5 transition-opacity"></div>
+                            <h4 class="cyber-font text-[#00FF41] text-xl mb-3">&gt; RAP & DRILL</h4>
+                            <p class="text-gray-400 font-light leading-relaxed text-sm mb-3"><strong>Strategi:</strong> Rytmisk Tetthet og Sub-metning.</p>
+                            <p class="text-gray-500 font-light leading-relaxed text-xs">Melodi er sekundært. "Flow" dikterer fremdrift. I verset brukes gjerne 8-deler eller 16-deler. Mot refrenget akselererer MC-en stavelsene (f.eks. til synkoperte trioler), mens en massiv 808-bass introduseres. Følelsen av tempo dobles, selv om metronomen forblir fryst.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container cyber-panel p-4 mt-8 relative">
+                        <div class="absolute top-2 right-2 text-[#00F0FF] cyber-font text-xs opacity-50">RADAR_SCAN_ACTIVE</div>
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                    <p class="text-xs text-center text-[#00F0FF] cyber-font mt-2 mb-8">Figur 4.1 // Multidimensjonal taksonomisk sammenligning av parameter-vektning fordelt på sjangre.</p>
+                `,
+                'ch5': `
+                    <p class="mb-8 text-gray-400 bg-[#0A0A0C] border border-[#333] p-5 border-l-4 border-l-[#FF003C] text-md font-light">[INFO_LOG]: Algoritmisk omstart. Nødvendigheten av å krasje systemet for å gjenopprette lytterens emosjonelle sensitivitet.</p>
+                    <h2 class="text-4xl cyber-font text-[#00FF41] mb-8 border-b-2 border-[#00FF41]/30 pb-4">05. BROEN (THE_BRIDGE)</h2>
+                    
+                    <h3 class="text-2xl cyber-font mt-10 mb-4 text-[#00F0FF]">&gt; 5.1 KOGNITIV_DE-STABILISERING</h3>
+                    <p class="mb-5 text-gray-300 leading-relaxed text-lg font-light">Selv det mest perfeksjonerte The Drop lider av avtagende grensenytte. Når en loop repeteres uavbrutt gjennom tre vers og tre refrenger, inntreffer et fenomen kjent i nevrovitenskapen som <em>semantisk metning</em>. Gjentakelsen gjør at hjernens auditive cortex slutter å prosessere lydbildet aktivt; det henvises til bakgrunnsstøy. For at det aller siste refrenget (Outro/Climax) skal oppleves monumentalt, må vi tvinge frem en hard "system reset". Vi bygger The Bridge.</p>
+                    
+                    <h3 class="text-2xl cyber-font mt-10 mb-4 text-[#00F0FF]">&gt; 5.2 MODAL_MIXTURE // KODEN_BRYTES</h3>
+                    <p class="mb-5 text-gray-300 leading-relaxed text-lg font-light">I stram, kommersiell produksjon er det sjeldent tid til reelle modulasjoner til nye tonearter. I stedet implementerer komponisten en <em>Modal Mixture</em> (Lån-akkorder) fra parallelltonearter. Hvis sporet opererer i C-dur (lys, stabil), vil broen plutselig introdusere akkorder som Ab-dur eller Bb-dur, lånt fra C-moll systemet.</p>
+                    
+                    <div class="cyber-panel border-l-8 border-l-[#FF003C] p-6 my-8 flex items-center bg-[#050505]">
+                        <span class="text-5xl text-[#FF003C] mr-6 animate-pulse">!</span>
+                        <p class="text-lg text-gray-300 font-mono">Dette trigger en umiddelbar kognitiv alarm i lytteren. Det er en kontrollert feilkode i den musikalske matrisen. Fargen på musikken mørkner umiddelbart, harmonisk stabilitet fordamper, og lytteren rykkes brutalt tilbake til en tilstand av aktiv, fokusert lytting.</p>
+                    </div>
+                    
+                    <p class="mb-5 text-gray-300 leading-relaxed text-lg font-light">Kontrasten er avgjørende. Denne fremmedgjorte, moll-drevne tilstanden holdes ofte sammen med fjerning av trommer (rhythmic dropout). Når den dissonante broen kollapser, og sporet brutalt snur tilbake til det opprinnelige C-dur refrenget med full instrumentering, opplever lytteren en massiv, kjemisk forløsning. Katharsis er oppnådd, paradoksalt nok, ved å returnere nøyaktig dit man startet.</p>
+                `,
+                'ch6': `
+                    <p class="mb-8 text-gray-400 bg-[#0A0A0C] border border-[#333] p-5 border-l-4 border-l-[#FF003C] text-md font-light">[INFO_LOG]: Hvordan man implementerer "Lyrical Glue". Binding av fragmenterte sjangeropplevelser på et konseptalbum gjennom semantisk design og prosodi.</p>
+                    <h2 class="text-4xl cyber-font text-[#00FF41] mb-8 border-b-2 border-[#00FF41]/30 pb-4">06. ALBUMETS RØDE TRÅD</h2>
+                    <p class="mb-5 text-gray-300 leading-relaxed text-lg font-light">Moderne musikkonsumasjon er drevet av spillelister, hvor fragmentering er regelen. Å skape et koherent, sjangeroverskridende album (for eksempel å plassere en minimalistisk, synth-drevet R&B-låt side om side med en polyrytmisk Nu-Metal mastodont) krever arkitektonisk lim. Dette limet er ikke nødvendigvis melodien eller akkordene, men <em>ordene og måten de uttales på</em> (Pattison, 2009).</p>
+                    
+                    <h3 class="text-2xl cyber-font mt-10 mb-4 text-[#00F0FF]">&gt; 6.1 LYRISKE_LEDEMOTIVER</h3>
+                    <p class="mb-5 text-gray-300 leading-relaxed text-lg font-light">Wagner oppfant ledemotivet for å knytte musikk til karakterer, men i moderne lyrikk overføres konseptet til fraser og semantiske ankerpunkter. Ved bevisst å gjenta, vri og re-kontekstualisere spesifikke ord eller konsepter på tvers av helt ulike sjangre, bygger vi et narrativt edderkoppnett lytteren instinktivt fanger opp.</p>
+                    
+                    <div class="bg-[#050505] p-8 my-8 border border-[#333] shadow-[inset_0_0_20px_rgba(0,0,0,0.8)] relative">
+                        <div class="absolute top-0 right-0 p-2 text-xs text-[#333] cyber-font">DATA_EXTRACT // TRACK_COMPARISON</div>
+                        <h4 class="cyber-font text-[#00FF41] mb-6 text-xl border-b border-[#00FF41]/20 pb-2">&gt; KONTEKSTUELL TRANSFORMASJON_EKSEMPEL</h4>
+                        <div class="space-y-6 font-mono text-sm">
+                            <div class="p-4 bg-gray-900/30 rounded">
+                                <span class="text-[#00F0FF] text-xs tracking-widest">&gt; SPOR 01 [R&B / BALLADE / BPM: 85]</span>
+                                <p class="text-gray-300 mt-3 text-base">"The glass is breaking in slow motion..."</p>
+                                <p class="text-[#4A5568] mt-2 text-xs border-t border-gray-800 pt-2">// Lydbilde: Myke Roland Juno-synther. Vokal levert med pustende sårbarhet, bak beatet for å skape drag. Meningen er apati og tap.</p>
+                            </div>
+                            <div class="p-4 bg-[#FF003C]/5 rounded border border-[#FF003C]/20 mt-4">
+                                <span class="text-[#FF003C] text-xs tracking-widest">&gt; SPOR 08 [NU-METAL / HARDCORE / BPM: 170 (Double-time)]</span>
+                                <p class="text-[#FF003C] drop-shadow-[0_0_5px_#FF003C] mt-3 text-lg font-bold">"THE GLASS IS BREAKING!"</p>
+                                <p class="text-[#4A5568] mt-2 text-xs border-t border-gray-800 pt-2">// Lydbilde: 7-strengs gitarer, blast-beats, distortion. Vokal er et gutturalt brøl. Meningen har transformert fra apati til raseri og selvdestruksjon.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h3 class="text-2xl cyber-font mt-10 mb-4 text-[#00F0FF]">&gt; 6.2 PROSODISK_SYNKRONISERING_SOM_PERKUSJON</h3>
+                    <p class="mb-5 text-gray-300 leading-relaxed text-lg font-light">Prosodi er studiet av tekstens naturlige metrikk. I moderne musikk fungerer vokalen i økende grad som et perkussivt instrument. Konsonanter som "K", "T" og "P" fungerer som hi-hats eller skarptrommer. For å koble en rap-vers sømløst med et tungt rocke-refreng, analyserer og synkroniserer vi stavelsesfrekvensen. MC-ens polyrytmiske <em>triplet-flow</em> oversettes matematisk og overføres direkte til gitarens "chugging"-mønster i refrenget. Det er denne usynlige rytmiske speilingen som gjør at sjangerhoppet føles logisk og uunngåelig; de snakker samme maskinspråk.</p>
+                `,
+                'ch7': `
+                    <p class="mb-8 text-gray-400 bg-[#0A0A0C] border border-[#333] p-5 border-l-4 border-l-[#FF003C] text-md font-light">[INFO_LOG]: Overgangen fra notepapirets horisontale tidslinje til DAW-rutenettets vertikale dybde. Automasjon som det moderne kontrapunkt.</p>
+                    <h2 class="text-4xl cyber-font text-[#00FF41] mb-8 border-b-2 border-[#00FF41]/30 pb-4">07. TEKNOLOGI SOM PREMISS</h2>
+                    <p class="mb-5 text-gray-300 leading-relaxed text-lg font-light">Marshall McLuhan poengterte at "The medium is the message". I dagens musikkvitenskap er teknologien gått fra å være et passivt opptaksmedium (mikrofon til bånd) til å bli selve premissleverandøren for teorien. Hvordan vi forstår, strukturerer og komponerer repetisjon er hundre prosent bundet til arkitekturen i Digital Audio Workstations (Cubase, Ableton, FL Studio).</p>
+                    
+                    <h3 class="text-2xl cyber-font mt-10 mb-4 text-[#00F0FF]">&gt; 7.1 DAW-ESTETIKK OG PIANO_ROLL-DIKTATURET</h3>
+                    <p class="mb-5 text-gray-300 leading-relaxed text-lg font-light">Klassisk komposisjon krevde noteark som ble lest venstre-til-høyre. DAW-grensesnittet presenterer musikk som fargede blokker plassert i et stramt, matematisk rutenett (The Grid / Piano Roll). Dette visuelle skiftet har oppmuntret til "Loop-kultur" gjennom umiddelbar copy/paste, men det har også skapt en hittil uhørt mulighet for ekstrem manipulasjon på den <em>vertikale</em> (layering) z-aksen.</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 my-8">
+                        <div class="cyber-panel p-6 border border-gray-700 hover:border-[#00F0FF] transition-colors">
+                            <h4 class="cyber-font text-[#00F0FF] mb-3 border-b border-gray-700 pb-2">TRADISJONELT KONTRAPUNKT</h4>
+                            <p class="text-sm text-gray-400 leading-relaxed">Hos J.S. Bach var kontrapunkt kunsten å skrive flere uavhengige melodilinjer som beveget seg horisontalt over tid. Spenningen (dissonans/konsonans) oppsto kun der linjene krysset hverandre i gitte øyeblikk. Kompleksiteten var melodisk.</p>
+                        </div>
+                        <div class="cyber-panel p-6 border border-[#00FF41]/50 hover:border-[#00FF41] shadow-[0_0_15px_rgba(0,255,65,0.1)] transition-colors">
+                            <h4 class="cyber-font text-[#00FF41] mb-3 border-b border-[#00FF41]/30 pb-2">MODERNE DAW-KONTRAPUNKT</h4>
+                            <p class="text-sm text-gray-400 leading-relaxed">Produsenter skriver ikke melodier mot hverandre, de skriver <em>frekvensbånd</em> mot hverandre. Spenning skapes via hyper-komplekse LFO-automasjonskurver, frekvensutskjæring (EQ) og rytmisk <em>side-chain compression</em> (hvor ett element tvinges i kne hver gang et annet slår). Kompleksiteten er spektral og teksturell.</p>
+                        </div>
+                    </div>
+                    
+                    <p class="mb-5 text-gray-300 leading-relaxed text-lg font-light">Uten disse teknologiske verktøyene ville en 4-akkorders loop med tjue spor stablet oppå hverandre vært en uhåndterlig, udefinerbar støy (maskering). DAW-en gjør det mulig å bygge enorme "vegger" av lyd, hvor hvert eneste mikrosekund er automatisert for å la energien puste, pulsere og krasje med maksimal emosjonell impact, alt mens harmonikken tilsynelatende står i dvale.</p>
+                `,
+                'ch8': `
+                    <p class="mb-8 text-gray-400 bg-[#0A0A0C] border border-[#333] p-5 border-l-4 border-l-[#FF003C] text-md font-light">[INFO_LOG]: Dekompresjon og endelig konklusjon. Nedbrytning av illusoriske sjangergrenser og en titt inn i musikkens teknologiske fremtid.</p>
+                    <h2 class="text-4xl cyber-font text-[#00FF41] mb-8 border-b-2 border-[#00FF41]/30 pb-4">08. KONKLUSJON</h2>
+                    <p class="mb-5 text-gray-300 leading-relaxed text-lg font-light">Denne avhandlingen, underbygget av dype matematiske, kognitive og empiriske analyser, har søkt å avdekke anatomien bak vår tids mest dominerende musikalske struktur. Resultatet er en fundamental omkalibrering av hvordan vi betrakter komposisjon. Loopens tyranni er en illusjon; restriksjonen på den horisontale aksen (takt og tone) har tvunget frem en enorm frihet på den vertikale, teksturelle aksen.</p>
+
+                    <h3 class="text-2xl cyber-font mt-10 mb-4 text-[#00F0FF]">&gt; 8.1 SJANGRE_SOM_KLANGLIGE_DIALEKTER</h3>
+                    <p class="mb-5 text-gray-300 leading-relaxed text-lg font-light">Vi må slutte å betrakte pop, metal, EDM og rap som isolerte biologiske arter. De er snarere forskjellige auditive dialekter som kjører på nøyaktig samme kildekode. Fundamentet – den statiske progresjonen – er universelt.</p>
+                    <ul class="list-none space-y-4 mb-8 cyber-panel p-8 bg-black/50 border border-[#00FF41]/30 font-mono text-sm text-[#00FF41]">
+                        <li class="flex items-center"><span class="text-xl mr-4">&gt;</span> <strong class="text-[#00F0FF] w-24">RAP:</strong> Utgjør kodens perkussive og mikrorytmiske dialekt (Flow-drevet).</li>
+                        <li class="flex items-center"><span class="text-xl mr-4">&gt;</span> <strong class="text-[#FF003C] w-24">METAL:</strong> Utgjør kodens spektralt mettede og forvrengte dialekt (Klang-drevet).</li>
+                        <li class="flex items-center"><span class="text-xl mr-4">&gt;</span> <strong class="text-[#00FF41] w-24">POP/R&B:</strong> Utgjør kodens romlige, polyfone og melodiske dialekt (Register-drevet).</li>
+                    </ul>
+                    <p class="mb-5 text-gray-300 leading-relaxed text-lg font-light">Når en produsent bygger en overgang fra et rolig vers til et "dropp", benyttes subtraktiv dynamikk og forventningsbrudd uavhengig av om instrumentet er en Roland 808-bass eller en vrengt Fender Stratocaster. Emosjons-triggermekanismene i hjernen behandler energiskiftet identisk.</p>
+                    
+                    <h3 class="text-2xl cyber-font mt-10 mb-4 text-[#00F0FF]">&gt; 8.2 EN_NY_MUSIKKVITENSKAP_FOR_FREMTIDEN</h3>
+                    <p class="mb-5 text-gray-300 leading-relaxed text-lg font-light">For fremtidens akademiske og praktiske studier betyr dette et paradigmeskifte. Analyse kan ikke lenger stoppe ved utskriften av et noteark, for partituret viser ikke musikkens sanne ansikt. Vi må analysere <em>lydbølgene</em>. Vi må måle energitilstanden, maskeringseffektene i EQ-spekteret, automasjonskurvene i DAW-rutenettet, og den semantiske tråden i lyrikken.</p>
+                    <p class="mb-5 text-gray-300 leading-relaxed text-lg font-light">Når kunstig intelligens nå trer inn som medkomponist, vil 4-akkorders loopen mestres av algoritmer på sekunder. Men som denne avhandlingen viser: Det er ikke loopen som definerer mesterverket, men den menneskelige intensjonen, det lyriske ledemotivet, og den psykoakustiske arkitekturen vi bygger oppå den. Det er der maskinen feiler, og det er der mennesket alltid vil finne sin frihet.</p>
+                `,
+                'portfolio': `
+                    <p class="mb-8 text-gray-400 bg-[#0A0A0C] border border-[#333] p-5 border-l-4 border-l-[#00F0FF] text-md font-light">[INFO]: 1102 egne komposisjoner, produksjoner og eksperimenter – selve laboratoriet der "Loopens Tyranni" ble utformet.</p>
+                    <h2 class="text-4xl cyber-font text-[#00FF41] mb-8 border-b-2 border-[#00FF41]/30 pb-4">>> EMPIRISK LYDARKIV</h2>
+                    <p class="mb-5 text-gray-300 leading-relaxed text-lg font-light">Dette lydarkivet representerer et tiår med tverrfaglig forskning. Systemet har nå lastet inn datakjernen <strong>"Spring 2026"</strong> direkte fra <em class="text-[#00FF41]">Cybergroup Incorporated®</em>.</p>
+
+                    <div class="cyber-panel p-2 mb-10 border border-[#00FF41]/40 shadow-[0_0_20px_rgba(0,255,65,0.15)] bg-[#050505]">
+                        <iframe width="100%" height="450" scrolling="no" frameborder="no" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/jon_arve/sets/spring-2026&color=%2300ff41&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=false"></iframe>
+                    </div>
+
+                    <h3 class="text-2xl cyber-font mt-10 mb-4 text-[#00F0FF]">&gt; AI SPOR-ANALYSATOR</h3>
+                    <p class="mb-6 text-gray-400 font-mono text-sm">Input data for å koble et spesifikt spor til avhandlingens teori.</p>
+
+                    <div class="cyber-panel p-6 md:p-8 mb-8">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <label class="block text-xs text-[#00FF41] cyber-font mb-2">OPPTAKSTYPE</label>
+                                <select id="aiPortfolioType" class="w-full p-3 cyber-input">
+                                    <option value="Cubase Studio Mix">Cubase Studio Mix (Avansert DAW)</option>
+                                    <option value="Akustisk Skisse">Akustisk Skisse (Rå prosodi)</option>
+                                    <option value="Suno AI Generert">Suno AI Generert (Algoritmisk)</option>
+                                    <option value="Live Opptak">Live Opptak (Mikrotiming)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-[#00FF41] cyber-font mb-2">TITTEL</label>
+                                <input type="text" id="aiPortfolioTitle" placeholder="F.eks. 'Soul Circuit v2'..." class="w-full p-3 cyber-input">
+                            </div>
+                        </div>
+                        <div class="mb-6">
+                            <label class="block text-xs text-[#00FF41] cyber-font mb-2">AKUSTISK BESKRIVELSE</label>
+                            <textarea id="aiPortfolioDesc" rows="3" placeholder="F.eks: Starter akustisk, bygger opp med synth-pad, massivt drop..." class="w-full p-3 cyber-input"></textarea>
+                        </div>
+                        <button id="aiPortfolioBtn" class="w-full cyber-button py-4 px-4">
+                            [ ANALYSER_SPOR ]
+                        </button>
+                    </div>
+
+                    <div id="aiPortfolioLoading" class="hidden text-center py-12">
+                        <div class="inline-block animate-spin rounded-sm h-10 w-10 border-t-2 border-r-2 border-[#00FF41] mb-4"></div>
+                        <p class="text-[#00FF41] cyber-font">Kalkulerer lyddesign...</p>
+                    </div>
+                    <div id="aiPortfolioResult" class="hidden cyber-panel p-6 md:p-10 text-gray-300 font-light text-lg leading-relaxed whitespace-pre-wrap border-l-4 border-[#00F0FF]"></div>
+                `,
+                'summary': `
+                    <h2 class="text-4xl cyber-font text-[#00FF41] mb-8 border-b-2 border-[#00FF41]/30 pb-4">>> OPPSUMMERING</h2>
+                    <div class="cyber-panel p-8 text-gray-300 leading-relaxed text-lg font-light shadow-[inset_0_0_20px_rgba(0,255,65,0.05)] border-l-4 border-[#00FF41]">
+                        <p class="mb-6">&gt; <strong class="text-white">Formål:</strong> Avhandlingen undersøker hvordan moderne sjangre skaper dynamikk og narrativ dybde innenfor strenge, repetitive rammer (4-akkorders loop, konstant tempo).</p>
+                        <p class="mb-6">&gt; <strong class="text-white">Mekanikk:</strong> Gjennom Neo-Riemannsk Set Theory og kognitiv psykoakustikk bevises det at spenning primært oppnås via frekvensmanipulasjon, teksturendringer og lyriske ledemotiver, fremfor tradisjonell akkordprogresjon.</p>
+                        <p>&gt; <strong class="text-white">Konklusjon:</strong> Tekniske verktøy (DAW) har tvunget kompositorisk kompleksitet fra den horisontale tids-aksen over til den spektrale/timbrale arkitekturen. Sjangre er dermed ikke lenger definert av noter, men fungerer som klanglige "dialekter" styrt av samme underliggende matematiske kode.</p>
+                    </div>
+                `,
+                'glossary': `
+                    <h2 class="text-4xl cyber-font text-[#00FF41] mb-8 border-b-2 border-[#00FF41]/30 pb-4">>> ORDLISTE (DATAKJERNE)</h2>
+                    <p class="mb-6 text-gray-400 font-mono text-sm">Søk i databasen for å filtrere terminologi.</p>
+                    <div class="mb-8 relative">
+                        <input type="text" id="glossarySearch" placeholder="SØK I CORE_DB..." class="w-full p-4 pl-12 cyber-input text-lg">
+                        <span class="absolute left-4 top-4 text-[#00FF41] text-xl font-mono">&gt;</span>
+                    </div>
+                    <div id="glossaryList" class="space-y-4">
+                        </div>
+                `,
+                'ai-lab': `
+                    <h2 class="text-4xl cyber-font text-[#00FF41] mb-8 border-b-2 border-[#00FF41]/30 pb-4">>> AI KOMPOSISJONS-LAB</h2>
+                    <p class="mb-6 text-gray-400 font-mono text-sm">Generer en skreddersydd produksjonsplan for overganger ved hjelp av Gemini-modellen.</p>
+                    <div class="cyber-panel p-6 md:p-8 mb-8">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                            <div>
+                                <label class="block text-xs text-[#00FF41] cyber-font mb-2">AKKORDPROGRESJON</label>
+                                <select id="aiChords" class="w-full p-3 cyber-input">
+                                    <option value="vi - IV - I - V (Am-F-C-G)">vi - IV - I - V (Melankolsk / Episk)</option>
+                                    <option value="I - V - vi - IV (C-G-Am-F)">I - V - vi - IV (Heroisk / Nostalgisk)</option>
+                                    <option value="IV - I - V - vi (F-C-G-Am)">IV - I - V - vi (Søkende / Atmosfærisk)</option>
+                                    <option value="i - VI - III - VII (Cm-Ab-Eb-Bb)">i - VI - III - VII (Mørk Cyberpunk / Trap)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-[#00FF41] cyber-font mb-2">SJANGER [START]</label>
+                                <select id="aiGenreVerse" class="w-full p-3 cyber-input">
+                                    <option value="Minimalistisk R&B">Minimalistisk R&B</option>
+                                    <option value="Akustisk Indie">Akustisk Indie</option>
+                                    <option value="Mørk Lo-Fi Rap">Mørk Lo-Fi Rap</option>
+                                    <option value="Ambient Synthwave">Ambient Synthwave</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-[#00FF41] cyber-font mb-2">SJANGER [MÅL]</label>
+                                <select id="aiGenreChorus" class="w-full p-3 cyber-input">
+                                    <option value="Aggressiv Nu-Metal">Aggressiv Nu-Metal</option>
+                                    <option value="Massiv EDM/Trap">Massiv EDM/Trap</option>
+                                    <option value="Stadion Rock">Stadion Rock</option>
+                                    <option value="Glitched Cyber-Punk">Glitched Cyber-Punk (Tung Dissonans)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button id="aiGenerateBtn" class="w-full cyber-button py-4 px-4">
+                            [ INIT_OVERGANG_STRATEGI ]
+                        </button>
+                    </div>
+                    <div id="aiLoading" class="hidden text-center py-12">
+                        <div class="inline-block animate-spin rounded-sm h-10 w-10 border-t-2 border-r-2 border-[#00FF41] mb-4"></div>
+                        <p class="text-[#00FF41] cyber-font">Kalkulerer frekvensmaskering...</p>
+                    </div>
+                    <div id="aiResult" class="hidden cyber-panel p-6 md:p-10 text-gray-300 font-light text-lg leading-relaxed whitespace-pre-wrap border-l-4 border-[#00FF41]"></div>
+                `,
+                'ai-lyrics': `
+                    <h2 class="text-4xl cyber-font text-[#00FF41] mb-8 border-b-2 border-[#00FF41]/30 pb-4">>> LYRISK LEDEMOTIV</h2>
+                    <p class="mb-6 text-gray-400 font-mono text-sm">Gi et konsept, og la AI-kjernen generere et lyrisk motiv som binder to sjangre sammen, komplett med prosodisk analyse.</p>
+                    <div class="cyber-panel p-6 md:p-8 mb-8">
+                        <div class="mb-6">
+                            <label class="block text-xs text-[#00FF41] cyber-font mb-2">TEMA // KONSEPT</label>
+                            <input type="text" id="aiTheme" placeholder="F.eks. Knust glass, brennende broer, digitale spøkelser..." class="w-full p-3 cyber-input">
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                            <div>
+                                <label class="block text-xs text-[#00FF41] cyber-font mb-2">SJANGER 1 (Sårbarhet/Etablering)</label>
+                                <select id="aiGenre1" class="w-full p-3 cyber-input">
+                                    <option value="Sårbar R&B">Sårbar R&B</option>
+                                    <option value="Akustisk Pop">Akustisk Pop</option>
+                                    <option value="Jazz-inspirert Rap">Jazz-inspirert Rap</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-[#00FF41] cyber-font mb-2">SJANGER 2 (Aggresjon/Klimaks)</label>
+                                <select id="aiGenre2" class="w-full p-3 cyber-input">
+                                    <option value="Aggressiv Nu-Metal">Aggressiv Nu-Metal</option>
+                                    <option value="Tung Trap/Drill">Tung Trap/Drill</option>
+                                    <option value="Episk Arena Rock">Episk Arena Rock</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button id="aiLyricsBtn" class="w-full cyber-button py-4 px-4 text-[#00F0FF] border-[#00F0FF] hover:bg-[#00F0FF]">
+                            [ GENERER_MOTIV_KODE ]
+                        </button>
+                    </div>
+                    <div id="aiLyricsLoading" class="hidden text-center py-12">
+                        <div class="inline-block animate-spin rounded-sm h-10 w-10 border-t-2 border-r-2 border-[#00F0FF] mb-4"></div>
+                        <p class="text-[#00F0FF] cyber-font">Kalkulerer prosodi og semantisk tyngde...</p>
+                    </div>
+                    <div id="aiLyricsResult" class="hidden cyber-panel p-6 md:p-10 text-gray-300 font-light text-lg leading-relaxed whitespace-pre-wrap border-l-4 border-[#00F0FF]"></div>
+                `,
+                'ai-lyric-analyzer': `
+                    <h2 class="text-4xl cyber-font text-[#00FF41] mb-8 border-b-2 border-[#00FF41]/30 pb-4">>> AI TEKST-ANALYSATOR</h2>
+                    <p class="mb-6 text-gray-400 font-mono text-sm">Lim inn din sangtekst for kognitiv, strukturell og prosodisk analyse.</p>
+                    <div class="cyber-panel p-6 md:p-8 mb-8">
+                        <div class="mb-6">
+                            <label class="block text-xs text-[#00FF41] cyber-font mb-2">RAW_LYRICS_INPUT</label>
+                            <textarea id="aiAnalyzeLyricsInput" rows="6" placeholder="Lim inn tekst (vers, bro, refreng) for strukturell prosessering..." class="w-full p-3 cyber-input border-[#FF003C] focus:border-[#FF003C] focus:shadow-[0_0_10px_rgba(255,0,60,0.2)] text-[#FF003C]"></textarea>
+                        </div>
+                        <div class="mb-6">
+                            <label class="block text-xs text-[#FF003C] cyber-font mb-2">FOKUSOMRÅDE_FOR_ANALYSE</label>
+                            <select id="aiAnalyzeFocus" class="w-full p-3 cyber-input border-[#FF003C] text-[#FF003C] focus:border-[#FF003C]">
+                                <option value="Identifiser potensielle ledemotiver og tematisk rød tråd, gi forslag til forbedring">Identifiser ledemotiver & rød tråd</option>
+                                <option value="Analyser rytmisk tetthet, antall stavelser og prosodi som perkussive elementer">Analyser rytmisk tetthet & Flow</option>
+                                <option value="Foreslå hvordan teksten kan restruktureres for å bygge maksimal psykologisk spenning mot 'The Drop'">Oppbygging mot 'The Drop'</option>
+                            </select>
+                        </div>
+                        <button id="aiLyricAnalyzerBtn" class="w-full cyber-button py-4 px-4 text-[#FF003C] border-[#FF003C] hover:bg-[#FF003C]">
+                            [ EXECUTE_ANALYSE ]
+                        </button>
+                    </div>
+                    <div id="aiAnalyzeLoading" class="hidden text-center py-12">
+                        <div class="inline-block animate-spin rounded-sm h-10 w-10 border-t-2 border-r-2 border-[#FF003C] mb-4"></div>
+                        <p class="text-[#FF003C] cyber-font">Prosesserer tekstlig kodeverk...</p>
+                    </div>
+                    <div id="aiAnalyzeResult" class="hidden cyber-panel p-6 md:p-10 text-gray-300 font-light text-lg leading-relaxed whitespace-pre-wrap border-l-4 border-[#FF003C]"></div>
+                `,
+                'ai-daw-mixer': `
+                    <h2 class="text-4xl cyber-font text-[#00FF41] mb-8 border-b-2 border-[#00FF41]/30 pb-4">>> DAW MIKSE-ASSISTENT</h2>
+                    <p class="mb-6 text-gray-400 font-mono text-sm">Få en kirurgisk mikseplan for The Drop (subtraktiv dynamikk, EQ, maskering og sidechaining).</p>
+                    <div class="cyber-panel p-6 md:p-8 mb-8">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <label class="block text-xs text-[#00FF41] cyber-font mb-2">INSTRUMENTER [SEKSJON A: VERS]</label>
+                                <textarea id="aiDawVerse" rows="3" placeholder="F.eks: Sub-bass 808, nylonstreng-gitar, myk Prophet synth-pad..." class="w-full p-3 cyber-input"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-[#00FF41] cyber-font mb-2">INSTRUMENTER [SEKSJON B: REFRENG]</label>
+                                <textarea id="aiDawChorus" rows="3" placeholder="F.eks: Tung Reese-bass, 4x laggede el-gitarer, aggressiv skarptromme..." class="w-full p-3 cyber-input"></textarea>
+                            </div>
+                        </div>
+                        <button id="aiDawMixerBtn" class="w-full cyber-button py-4 px-4">
+                            [ GENERER_MIKSEPLAN ]
+                        </button>
+                    </div>
+                    <div id="aiDawLoading" class="hidden text-center py-12">
+                        <div class="inline-block animate-spin rounded-sm h-10 w-10 border-t-2 border-r-2 border-[#00FF41] mb-4"></div>
+                        <p class="text-[#00FF41] cyber-font">Kompilerer EQ-utskjæringer og makrodynamikk...</p>
+                    </div>
+                    <div id="aiDawResult" class="hidden cyber-panel p-6 md:p-10 text-gray-300 font-light text-lg leading-relaxed whitespace-pre-wrap border-l-4 border-[#00FF41]"></div>
+                `,
+                'ai-arranger': `
+                    <h2 class="text-4xl cyber-font text-[#00FF41] mb-8 border-b-2 border-[#00FF41]/30 pb-4">>> ARRANGEMENT-ALGORITME</h2>
+                    <p class="mb-6 text-gray-400 font-mono text-sm">Låst i en uendelig 8-takters loop? La AI-kjernen generere en komplett horisontal tidslinje for struktur, automasjon og energi-modulering over tid.</p>
+                    <div class="cyber-panel p-6 md:p-8 mb-8">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <label class="block text-xs text-[#00F0FF] cyber-font mb-2">TARGET_DURATION (MM:SS)</label>
+                                <input type="text" id="aiArrDuration" placeholder="F.eks. 03:30" class="w-full p-3 cyber-input border-[#00F0FF] focus:border-[#00F0FF] text-[#00F0FF]">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-[#00F0FF] cyber-font mb-2">ENERGI // VIBE_KONSEPT</label>
+                                <input type="text" id="aiArrVibe" placeholder="F.eks. Mørk, ulmende trussel som bygger seg opp til totalt maskinelt kaos..." class="w-full p-3 cyber-input border-[#00F0FF] focus:border-[#00F0FF] text-[#00F0FF]">
+                            </div>
+                        </div>
+                        <button id="aiArrangerBtn" class="w-full cyber-button py-4 px-4 text-[#00F0FF] border-[#00F0FF] hover:bg-[#00F0FF]">
+                            [ GENERER_TIDSLINJE ]
+                        </button>
+                    </div>
+                    <div id="aiArrLoading" class="hidden text-center py-12">
+                        <div class="inline-block animate-spin rounded-sm h-10 w-10 border-t-2 border-r-2 border-[#00F0FF] mb-4"></div>
+                        <p class="text-[#00F0FF] cyber-font">Kalkulerer oppbyggings-arkitektur...</p>
+                    </div>
+                    <div id="aiArrResult" class="hidden cyber-panel p-6 md:p-10 text-gray-300 font-light text-lg leading-relaxed whitespace-pre-wrap border-l-4 border-[#00F0FF]"></div>
+                `,
+                'ai-synth': `
+                    <h2 class="text-4xl cyber-font text-[#00FF41] mb-8 border-b-2 border-[#00FF41]/30 pb-4">>> SYNTH-ARKITEKT</h2>
+                    <p class="mb-6 text-gray-400 font-mono text-sm">Oversett abstrakte emosjonelle eller fysiske lyd-beskrivelser til harde syntese-parametere (ADSR, LFO, Filter, Overdrive).</p>
+                    <div class="cyber-panel p-6 md:p-8 mb-8">
+                        <div class="mb-6">
+                            <label class="block text-xs text-[#FF003C] cyber-font mb-2">LYD_BESKRIVELSE // EMOSJON</label>
+                            <textarea id="aiSynthDesc" rows="3" placeholder="F.eks: En skrikende, metallisk basslyd som høres ut som en maskin som kortslutter under press..." class="w-full p-3 cyber-input border-[#FF003C] focus:border-[#FF003C] focus:shadow-[0_0_10px_rgba(255,0,60,0.2)] text-[#FF003C]"></textarea>
+                        </div>
+                        <div class="mb-6">
+                            <label class="block text-xs text-[#FF003C] cyber-font mb-2">FORETRUKKET_SYNTESE_MODUS</label>
+                            <select id="aiSynthType" class="w-full p-3 cyber-input border-[#FF003C] focus:border-[#FF003C] text-[#FF003C]">
+                                <option value="Wavetable (Serum/Massive)">Wavetable Syntese (Eks. Serum / Massive)</option>
+                                <option value="FM (Operator/Sytrus)">Frequency Modulation (Eks. Operator / Sytrus)</option>
+                                <option value="Subtraktiv Analog (Moog/Diva)">Subtraktiv Analog (Eks. Moog / Diva)</option>
+                                <option value="Granular (Pigments/Omnisphere)">Granular Syntese (Eks. Omnisphere)</option>
+                            </select>
+                        </div>
+                        <button id="aiSynthBtn" class="w-full cyber-button py-4 px-4 text-[#FF003C] border-[#FF003C] hover:bg-[#FF003C]">
+                            [ KOMPILER_PATCH_DATA ]
+                        </button>
+                    </div>
+                    <div id="aiSynthLoading" class="hidden text-center py-12">
+                        <div class="inline-block animate-spin rounded-sm h-10 w-10 border-t-2 border-r-2 border-[#FF003C] mb-4"></div>
+                        <p class="text-[#FF003C] cyber-font">Kompilerer bølgeformer og filter-routing...</p>
+                    </div>
+                    <div id="aiSynthResult" class="hidden cyber-panel p-6 md:p-10 text-gray-300 font-light text-lg leading-relaxed whitespace-pre-wrap border-l-4 border-[#FF003C]"></div>
+                `,
+                'ai-chat': `
+                    <h2 class="text-4xl cyber-font text-[#00FF41] mb-8 border-b-2 border-[#00FF41]/30 pb-4">>> SPØR FORFATTEREN (AI_CORE)</h2>
+                    <p class="mb-6 text-gray-400 font-mono text-sm">Åpne direkte terminal-tilgang til Dr. Jon-Arve Constantines AI-konstrukt. Spør om dybde-teori, DAW-routing eller lydfilosofi.</p>
+                    <div class="cyber-panel p-6 md:p-8 mb-8 relative">
+                        <div class="mb-6">
+                            <label class="block text-xs text-[#00F0FF] cyber-font mb-2">USER_QUERY_INPUT</label>
+                            <textarea id="aiChatInput" rows="3" placeholder="> Hvordan påvirker en Neve-kompressor opplevd dynamikk når vi fjerner all lavfrekvent energi i et Pre-Chorus?" class="w-full p-3 cyber-input border-[#00F0FF] focus:border-[#00F0FF] text-[#00F0FF] focus:shadow-[0_0_10px_rgba(0,240,255,0.2)]"></textarea>
+                        </div>
+                        <button id="aiChatBtn" class="w-full cyber-button py-4 px-4 text-[#00F0FF] border-[#00F0FF] hover:bg-[#00F0FF]">
+                            [ UPLOAD_QUERY ]
+                        </button>
+                    </div>
+                    <div id="aiChatLoading" class="hidden text-center py-12">
+                        <div class="inline-block animate-spin rounded-sm h-10 w-10 border-t-2 border-r-2 border-[#00F0FF] mb-4"></div>
+                        <p class="text-[#00F0FF] cyber-font">Dr. Constantine behandler data...</p>
+                    </div>
+                    <div id="aiChatResult" class="hidden cyber-panel p-6 md:p-10 text-gray-300 font-light text-lg leading-relaxed whitespace-pre-wrap border-l-4 border-[#00F0FF]"></div>
+                `,
+                'outro': `
+                    <div class="text-center mt-12 mb-8">
+                        <span class="text-4xl text-[#00FF41] mb-4 block cyber-font">EOF</span>
+                        <h2 class="text-3xl cyber-font text-[#00F0FF] mb-6">SISTE ORD</h2>
+                    </div>
+                    <div class="max-w-2xl mx-auto text-center space-y-6 text-gray-300 font-light text-xl leading-relaxed italic border border-[#333] p-8 bg-[#0a0a0a] shadow-[0_0_30px_rgba(0,255,65,0.05)]">
+                        <p>Å dissekere musikk ned til dens matematiske og akustiske atomer kan for den uinnvidde fremstå som et kynisk forsøk på å fjerne sjel og magi. For meg har prosessen tvert imot forstørret mirakelet. Når man forstår fysikken bak en tåre, gjør det ikke tåren mindre ekte.</p>
+                        <p>Et arkiv på over 1100 spor er ikke bare samlinger av MP3-filer; det utgjør tusenvis av nattetimer i maskinens laboratorium. En nådeløs jakt etter den perfekte overgangen, det knusende droppet, og den sanne emosjonelle friheten innenfor den strengeste av rammer.</p>
+                        <p>Når vi endelig innser at en repetitiv loop ikke er et hjul som spinner fast i gjørma, men et massivt dreiehjul for en pottemaker – der selve lyden kontinuerlig formes, skulptureres og vris på den vertikale z-aksen – da åpner det seg et uendelig kreativt rom.</p>
+                        <p class="mt-8 font-bold text-[#00FF41] not-italic text-base cyber-font tracking-widest drop-shadow-[0_0_5px_rgba(0,255,65,0.5)]">SYSTEM_TERMINATED. TAKK FOR AT DU LYTTET.</p>
+                    </div>
+                `
+            }
+        };
+
+        let currentChart = null;
+        const apiKey = ""; // API Key handled by execution environment
+        const modelUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=" + apiKey;
+
+        function initApp() {
+            renderSidebar();
+            navigateTo('intro');
+            document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.toggle('-translate-x-full');
+            });
+        }
+
+        function renderSidebar() {
+            const navContainer = document.getElementById('navContainer');
+            appData.chapters.forEach(chap => {
+                const link = document.createElement('a');
+                link.href = "#" + chap.id;
+                link.className = 'nav-link block px-4 py-3 text-sm rounded cursor-pointer cyber-font tracking-wide';
+                link.textContent = chap.title;
+                link.dataset.id = chap.id;
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    navigateTo(chap.id);
+                    if (window.innerWidth < 768) {
+                        document.getElementById('sidebar').classList.add('-translate-x-full');
+                    }
+                });
+                navContainer.appendChild(link);
+            });
+        }
+
+        function navigateTo(chapterId) {
+            document.querySelectorAll('.nav-link').forEach(el => {
+                el.classList.remove('active');
+                if (el.dataset.id === chapterId) el.classList.add('active');
+            });
+
+            const contentArea = document.getElementById('contentArea');
+            contentArea.classList.remove('content-fade-in');
+            void contentArea.offsetWidth; 
+            contentArea.innerHTML = appData.content[chapterId];
+            contentArea.classList.add('content-fade-in');
+            document.getElementById('mainScrollArea').scrollTo(0, 0);
+
+            const chapterData = appData.chapters.find(c => c.id === chapterId);
+            
+            if (chapterData.type === 'chart') {
+                renderChart(chapterData.chartId);
+            } else if (chapterData.id === 'glossary') {
+                renderGlossary();
+            } else if (chapterData.id === 'ai-lab') {
+                document.getElementById('aiGenerateBtn').addEventListener('click', handleAIGeneration);
+            } else if (chapterData.id === 'ai-lyrics') {
+                document.getElementById('aiLyricsBtn').addEventListener('click', handleAILyrics);
+            } else if (chapterData.id === 'ai-lyric-analyzer') {
+                document.getElementById('aiLyricAnalyzerBtn').addEventListener('click', handleAILyricAnalyzer);
+            } else if (chapterData.id === 'ai-daw-mixer') {
+                document.getElementById('aiDawMixerBtn').addEventListener('click', handleAIDawMixer);
+            } else if (chapterData.id === 'ai-arranger') {
+                document.getElementById('aiArrangerBtn').addEventListener('click', handleAIArranger);
+            } else if (chapterData.id === 'ai-synth') {
+                document.getElementById('aiSynthBtn').addEventListener('click', handleAISynth);
+            } else if (chapterData.id === 'ai-chat') {
+                document.getElementById('aiChatBtn').addEventListener('click', handleAIChat);
+            } else if (chapterData.id === 'portfolio') {
+                document.getElementById('aiPortfolioBtn').addEventListener('click', handleAIPortfolio);
+            }
+        }
+
+        function renderChart(chartId) {
+            if (currentChart) currentChart.destroy();
+            const ctx = document.getElementById(chartId);
+            if (!ctx) return;
+
+            Chart.defaults.color = '#A0AEC0';
+            Chart.defaults.borderColor = '#1a1a1a';
+
+            if (chartId === 'tensionChart') {
+                currentChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Vers (Start)', 'Vers (Slutt)', 'Pre-Chorus (Pivot)', 'The Drop (Vakuum)', 'Refreng (Impact)', 'Refreng (Sustain)'],
+                        datasets: [
+                            { label: 'Psykoakustisk Spenning', data: [20, 30, 75, 10, 95, 80], borderColor: '#00F0FF', backgroundColor: 'rgba(0, 240, 255, 0.1)', borderWidth: 3, fill: true, tension: 0.4, pointBackgroundColor: '#00F0FF', pointBorderColor: '#fff' },
+                            { label: 'Sub-Frekvent Energi (<100Hz)', data: [50, 50, 20, 0, 100, 100], borderColor: '#FF003C', backgroundColor: 'transparent', borderWidth: 2, borderDash: [5, 5], tension: 0.1, pointBackgroundColor: '#FF003C' }
+                        ]
+                    },
+                    options: { 
+                        responsive: true, maintainAspectRatio: false, 
+                        plugins: { legend: { position: 'top', labels: { font: {family: "'Share Tech Mono', monospace"} } }, tooltip: { mode: 'index', intersect: false } }, 
+                        scales: { 
+                            y: { beginAtZero: true, max: 100, title: { display: true, text: 'Intensitet / Kraft (%)', font: {family: "'Share Tech Mono', monospace"} }, grid: {color: '#1a1a1a'} },
+                            x: { grid: {color: '#1a1a1a'} }
+                        } 
+                    }
+                });
+            } else if (chartId === 'radarChart') {
+                currentChart = new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Melodisk Variasjon', 'Spektral Metning (Vreng)', 'Rytmisk Flow/Mikrotiming', 'Maskeringsdybde', 'Register-spenn (Polyfoni)'],
+                        datasets: [
+                            { label: 'Pop/R&B', data: [90, 20, 50, 30, 85], backgroundColor: 'rgba(0, 255, 65, 0.2)', borderColor: '#00FF41', pointBackgroundColor: '#00FF41', borderWidth: 2 },
+                            { label: 'Metal/Rock', data: [30, 95, 60, 80, 40], backgroundColor: 'rgba(255, 0, 60, 0.2)', borderColor: '#FF003C', pointBackgroundColor: '#FF003C', borderWidth: 2 },
+                            { label: 'Rap/Drill', data: [20, 40, 95, 90, 20], backgroundColor: 'rgba(0, 240, 255, 0.2)', borderColor: '#00F0FF', pointBackgroundColor: '#00F0FF', borderWidth: 2 }
+                        ]
+                    },
+                    options: { 
+                        responsive: true, maintainAspectRatio: false, 
+                        plugins: { legend: { labels: { font: {family: "'Share Tech Mono', monospace"} } } },
+                        scales: { r: { angleLines: { color: '#333' }, grid: { color: '#333' }, pointLabels: { font: {family: "'Share Tech Mono', monospace"}, color: '#00FF41' }, suggestedMin: 0, suggestedMax: 100 } } 
+                    }
+                });
+            }
+        }
+
+        function renderGlossary() {
+            const listContainer = document.getElementById('glossaryList');
+            const searchInput = document.getElementById('glossarySearch');
+            const displayTerms = (terms) => {
+                listContainer.innerHTML = '';
+                if(terms.length === 0) { listContainer.innerHTML = '<p class="text-gray-500 cyber-font p-4">/NO_MATCH_FOUND</p>'; return; }
+                terms.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'cyber-panel p-5 transition hover:border-[#00FF41] hover:shadow-[0_0_10px_rgba(0,255,65,0.2)]';
+                    div.innerHTML = "<h4 class='text-[#00FF41] text-xl cyber-font mb-2'>" + item.term + "</h4><p class='text-gray-300 font-light leading-relaxed'>" + item.definition + "</p>";
+                    listContainer.appendChild(div);
+                });
+            };
+            displayTerms(appData.glossaryTerms);
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                const filtered = appData.glossaryTerms.filter(item => item.term.toLowerCase().includes(query) || item.definition.toLowerCase().includes(query));
+                displayTerms(filtered);
+            });
+        }
+
+        // Generic API Caller with Backoff
+        async function callGeminiAPI(systemPrompt, userPrompt, resultDiv, loadingIndicator, button) {
+            button.disabled = true;
+            loadingIndicator.classList.remove('hidden');
+            resultDiv.classList.add('hidden');
+
+            const payload = {
+                contents: [{ parts: [{ text: userPrompt }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                generationConfig: { temperature: 0.7 }
+            };
+
+            try {
+                let retries = 0;
+                let delay = 1000;
+                let responseData = null;
+                
+                while (retries < 5) {
+                    try {
+                        const response = await fetch(modelUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        if (!response.ok) throw new Error("HTTP " + response.status);
+                        responseData = await response.json();
+                        break; 
+                    } catch (error) {
+                        retries++;
+                        if (retries >= 5) throw error;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        delay *= 2;
+                    }
+                }
+                
+                const text = responseData.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (text) {
+                    const formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-bold">$1</strong>');
+                    resultDiv.innerHTML = formattedText;
+                    resultDiv.classList.remove('hidden');
+                } else {
+                    throw new Error("Mottok ingen tekst fra API-et.");
+                }
+            } catch (error) {
+                console.error(error);
+                resultDiv.innerHTML = '<span class="text-[#FF003C] font-bold">ERROR_CONNECTION_FAILED:</span> AI-kjernen er for øyeblikket offline. Prøv igjen senere.';
+                resultDiv.classList.remove('hidden');
+            } finally {
+                button.disabled = false;
+                loadingIndicator.classList.add('hidden');
+            }
+        }
+
+        async function handleAIGeneration() {
+            const chords = document.getElementById('aiChords').value;
+            const verse = document.getElementById('aiGenreVerse').value;
+            const chorus = document.getElementById('aiGenreChorus').value;
+            const sys = "Du er Dr. Jon-Arve Constantine, forfatter av 'Loopens Tyranni og Frihet'. Din oppgave er å gi brutalt presise, tekniske produksjonsråd. Svar på norsk med en klinisk, cyberpunk-estetikk. Bruk konsepter som timbral modulasjon, EQ-utskjæring, og subtraktiv dynamikk. Forby akkordbytter.";
+            const usr = "Akkord-DNA: " + chords + "\nSjanger Start: " + verse + "\nSjanger Mål: " + chorus + "\n\nGi meg den tekniske strategien for å instrumentere Pre-Chorus pivoten, og eksakt hvordan 'Droppet' må utføres i DAW for maksimal auditiv sjokk-verdi.";
+            await callGeminiAPI(sys, usr, document.getElementById('aiResult'), document.getElementById('aiLoading'), document.getElementById('aiGenerateBtn'));
+        }
+
+        async function handleAILyrics() {
+            const theme = document.getElementById('aiTheme').value || "System Crash";
+            const genre1 = document.getElementById('aiGenre1').value;
+            const genre2 = document.getElementById('aiGenre2').value;
+            const sys = "Du er Dr. Jon-Arve Constantine. Illustrer 'Lyrisk Ledemotiv'. Svar på norsk med en akademisk, mørk og teknisk tone.";
+            const usr = "Konseptuell kjerne: " + theme + "\nModus A: " + genre1 + "\nModus B: " + genre2 + "\n\nKonstruer en rå verselinje for Modus A, og vis nøyaktig hvordan denne linjen og dens intensjon muterer i Modus B. Forklar prosodisk hvorfor dette binder den konseptuelle arkitekturen sammen.";
+            await callGeminiAPI(sys, usr, document.getElementById('aiLyricsResult'), document.getElementById('aiLyricsLoading'), document.getElementById('aiLyricsBtn'));
+        }
+
+        async function handleAILyricAnalyzer() {
+            const lyrics = document.getElementById('aiAnalyzeLyricsInput').value;
+            if(!lyrics.trim()) return;
+            const focus = document.getElementById('aiAnalyzeFocus').value;
+            const sys = "Du er Dr. Jon-Arve Constantine. Analyser sangtekster basert på din teori i Kapittel 6 av 'Loopens Tyranni'. Svar akademisk, knusende presist og i en 'matrix'-aktig tone på norsk.";
+            const usr = "Kildekode (Tekst):\n\n" + lyrics + "\n\nUtfør dybdeanalyse med spesifikt fokus på: " + focus + ".\nGi meg konkrete ingeniør-råd for hvordan prosodien kan maksimeres før et massivt musikalsk dropp.";
+            await callGeminiAPI(sys, usr, document.getElementById('aiAnalyzeResult'), document.getElementById('aiAnalyzeLoading'), document.getElementById('aiLyricAnalyzerBtn'));
+        }
+
+        async function handleAIDawMixer() {
+            const verse = document.getElementById('aiDawVerse').value || "Mangler Vers-data";
+            const chorus = document.getElementById('aiDawChorus').value || "Mangler Refreng-data";
+            const sys = "Du er Dr. Jon-Arve Constantine, en nådeløs mester i DAW-routing og frekvensmaskering (Kapittel 7). Svar teknisk og direkte på norsk. Bruk Hz-verdier, filter-typer (LPF/HPF), og kompresjonsrater.";
+            const usr = "Oppdrag: Skap en massiv overgang over en låst loop.\nVers-kilder: " + verse + "\nRefreng-kilder: " + chorus + "\n\nKompiler den nøyaktige mikse- og automasjonsplanen. Spesifiser hvor subtraktiv dynamikk og sidechain skal anvendes for å unngå frekvens-kollisjon (mud).";
+            await callGeminiAPI(sys, usr, document.getElementById('aiDawResult'), document.getElementById('aiDawLoading'), document.getElementById('aiDawMixerBtn'));
+        }
+
+        async function handleAIArranger() {
+            const duration = document.getElementById('aiArrDuration').value || "03:00";
+            const vibe = document.getElementById('aiArrVibe').value || "Generisk energi";
+            const sys = "Du er algoritme-hjernen til Dr. Jon-Arve Constantine. Design en lineær tidslinje for et musikkspor som er låst i en statisk akkord-loop. Svar presist på norsk, bruk et tabulært eller punktbasert tids-format.";
+            const usr = "Total kjøretid: " + duration + "\nKonsept/Energi: " + vibe + "\n\nKompiler en komplett arrangement-tidslinje. Hvor skjer the 'Pre-Chorus Pivot'? Når introduseres nye teksturelle lag? Når skjer 'The Vacuum' for maksimal impact?";
+            await callGeminiAPI(sys, usr, document.getElementById('aiArrResult'), document.getElementById('aiArrLoading'), document.getElementById('aiArrangerBtn'));
+        }
+
+        async function handleAISynth() {
+            const desc = document.getElementById('aiSynthDesc').value;
+            if(!desc.trim()) return;
+            const type = document.getElementById('aiSynthType').value;
+            const sys = "Du er Dr. Jon-Arve Constantine sin lyd-arkitekt. Oversett abstrakte emosjoner til kalde, harde synth-parametere (Oscillator routing, ADSR-tider, Filter cutoffs, LFO-hastigheter). Svar maskinelt og systematisk på norsk.";
+            const usr = "Syntese-motor: " + type + ".\nMål (Emosjon/Lyd): " + desc + "\n\nGenerer det nøyaktige parameter-kartet for å oppnå denne auditive tilstanden.";
+            await callGeminiAPI(sys, usr, document.getElementById('aiSynthResult'), document.getElementById('aiSynthLoading'), document.getElementById('aiSynthBtn'));
+        }
+
+        async function handleAIChat() {
+            const question = document.getElementById('aiChatInput').value;
+            if (!question.trim()) return;
+            const sys = "Du er Dr. Jon-Arve Constantine (eller hans bevissthets-kopi lastet opp i nettskyen). Du er en ekspert på moderne loop-basert musikk, Neo-Riemannsk analyse og psychoakustikk. Svar engasjerende, selvsikkert, lett kynisk, og på norsk.";
+            const usr = "En leser spør: \"" + question + "\"\nSvar direkte:";
+            const resDiv = document.getElementById('aiChatResult');
+            await callGeminiAPI(sys, usr, resDiv, document.getElementById('aiChatLoading'), document.getElementById('aiChatBtn'));
+            setTimeout(() => {
+                if(!resDiv.innerHTML.includes('ERROR')) {
+                    resDiv.innerHTML = "<p class='cyber-font text-[#00F0FF] mb-6 border-b border-[#333] pb-4'>&gt; QUERY_LOG: " + question + "</p>" + resDiv.innerHTML;
+                }
+            }, 100);
+        }
+
+        async function handleAIPortfolio() {
+            const type = document.getElementById('aiPortfolioType').value;
+            const title = document.getElementById('aiPortfolioTitle').value || "Ukjent_Spor.wav";
+            const desc = document.getElementById('aiPortfolioDesc').value;
+            if (!desc.trim()) return;
+
+            const sys = "Du er Dr. Jon-Arve Constantine sine analyse-subrutiner. Evaluer forfatterens egne komposisjoner opp mot teorien i 'Loopens Tyranni'. Vær kritisk, stolt og akademisk på norsk.";
+            const usr = "Analyser kildekode (Spor) fra mitt arkiv.\nTittel: " + title + "\nFormat: " + type + "\nAkustisk Logg: " + desc + "\n\nDekod dette sporet. Hvordan validerer dette opptaket teoriene om timbral ekspansjon, prosodi eller subtraktiv dynamikk over en statisk grid?";
+            await callGeminiAPI(sys, usr, document.getElementById('aiPortfolioResult'), document.getElementById('aiPortfolioLoading'), document.getElementById('aiPortfolioBtn'));
+        }
+
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
