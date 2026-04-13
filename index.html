@@ -78,6 +78,27 @@
         .cyber-input::placeholder {
             color: #4A5568;
         }
+        .cyber-select {
+            background-color: #050505;
+            border: 1px solid #333;
+            color: #00FF41;
+            font-family: 'Share Tech Mono', monospace;
+            transition: all 0.2s;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2300FF41' d='M0 0l6 8 6-8z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 28px;
+        }
+        .cyber-select:focus {
+            border-color: #00FF41;
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+            outline: none;
+        }
+        .cyber-select option {
+            background-color: #050505;
+            color: #00FF41;
+        }
         
         .cyber-button {
             background-color: transparent;
@@ -129,6 +150,26 @@
             <p class="text-xs text-gray-500 mb-6 cyber-font">v3.1.00 // Dyp_Analyse</p>
             <div class="space-y-1 cyber-font" id="navContainer">
                 </div>
+
+            <div class="mt-8 pt-6 border-t border-[#00FF41]/20">
+                <h3 class="cyber-font text-[#00FF41] text-xs mb-4 tracking-widest">&#9881; AI_KONFIG</h3>
+                <div class="space-y-3">
+                    <div>
+                        <label class="cyber-font text-xs text-gray-500 block mb-1">AI_TYPE</label>
+                        <select id="aiProviderSelect" class="cyber-select w-full px-3 py-2 text-sm rounded">
+                            <option value="gemini">Gemini (Google)</option>
+                            <option value="openai">GPT-4o (OpenAI)</option>
+                            <option value="anthropic">Claude (Anthropic)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="cyber-font text-xs text-gray-500 block mb-1">API_NØKKEL</label>
+                        <input type="password" id="aiApiKeyInput" class="cyber-input w-full px-3 py-2 text-sm rounded" placeholder="Lim inn API-nøkkel...">
+                    </div>
+                    <button id="saveSettingsBtn" class="cyber-button w-full py-2 text-xs">LAGRE_KONFIG</button>
+                    <p id="settingsSavedMsg" class="hidden text-[#00FF41] cyber-font text-xs text-center">// KONFIG_LAGRET</p>
+                </div>
+            </div>
         </div>
     </nav>
 
@@ -652,15 +693,43 @@
         };
 
         let currentChart = null;
-        const apiKey = ""; // API Key handled by execution environment
-        const modelUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=" + apiKey;
+        let aiSettings = { provider: 'gemini', apiKey: '' };
+
+        function loadSettings() {
+            try {
+                const saved = localStorage.getItem('aiSettings');
+                if (saved) aiSettings = JSON.parse(saved);
+            } catch(e) { console.error('Kunne ikke laste AI-innstillinger:', e); }
+            document.getElementById('aiProviderSelect').value = aiSettings.provider;
+            document.getElementById('aiApiKeyInput').value = aiSettings.apiKey;
+        }
+
+        function saveSettings() {
+            aiSettings.provider = document.getElementById('aiProviderSelect').value;
+            aiSettings.apiKey = document.getElementById('aiApiKeyInput').value.trim();
+            const msg = document.getElementById('settingsSavedMsg');
+            try {
+                localStorage.setItem('aiSettings', JSON.stringify(aiSettings));
+                msg.textContent = '// KONFIG_LAGRET';
+                msg.classList.remove('hidden', 'text-[#FF003C]');
+                msg.classList.add('text-[#00FF41]');
+            } catch(e) {
+                console.error('Kunne ikke lagre AI-innstillinger:', e);
+                msg.textContent = '// LAGRING_FEILET';
+                msg.classList.remove('hidden', 'text-[#00FF41]');
+                msg.classList.add('text-[#FF003C]');
+            }
+            setTimeout(() => msg.classList.add('hidden'), 2000);
+        }
 
         function initApp() {
             renderSidebar();
+            loadSettings();
             navigateTo('intro');
             document.getElementById('mobileMenuBtn').addEventListener('click', () => {
                 document.getElementById('sidebar').classList.toggle('-translate-x-full');
             });
+            document.getElementById('saveSettingsBtn').addEventListener('click', saveSettings);
         }
 
         function renderSidebar() {
@@ -788,33 +857,46 @@
             });
         }
 
-        // Generic API Caller with Backoff
-        async function callGeminiAPI(systemPrompt, userPrompt, resultDiv, loadingIndicator, button) {
+        // Generic API Caller with Backoff — supports Gemini, OpenAI, and Anthropic
+        async function callAI(systemPrompt, userPrompt, resultDiv, loadingIndicator, button) {
+            const { provider, apiKey } = aiSettings;
+            if (!apiKey) {
+                resultDiv.innerHTML = '<span class="text-[#FF003C] font-bold">ERROR_NO_API_KEY:</span> Ingen API-nøkkel er konfigurert. Legg inn nøkkel i AI_KONFIG-panelet i venstre meny.';
+                resultDiv.classList.remove('hidden');
+                return;
+            }
+
             button.disabled = true;
             loadingIndicator.classList.remove('hidden');
             resultDiv.classList.add('hidden');
 
-            const payload = {
-                contents: [{ parts: [{ text: userPrompt }] }],
-                systemInstruction: { parts: [{ text: systemPrompt }] },
-                generationConfig: { temperature: 0.7 }
-            };
+            let url, headers, payload;
+
+            if (provider === 'openai') {
+                url = 'https://api.openai.com/v1/chat/completions';
+                headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey };
+                payload = { model: 'gpt-4o', messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }], temperature: 0.7 };
+            } else if (provider === 'anthropic') {
+                url = 'https://api.anthropic.com/v1/messages';
+                headers = { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' };
+                payload = { model: 'claude-opus-4-5', max_tokens: 2048, system: systemPrompt, messages: [{ role: 'user', content: userPrompt }] };
+            } else {
+                url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=' + apiKey;
+                headers = { 'Content-Type': 'application/json' };
+                payload = { contents: [{ parts: [{ text: userPrompt }] }], systemInstruction: { parts: [{ text: systemPrompt }] }, generationConfig: { temperature: 0.7 } };
+            }
 
             try {
                 let retries = 0;
                 let delay = 1000;
                 let responseData = null;
-                
+
                 while (retries < 5) {
                     try {
-                        const response = await fetch(modelUrl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
-                        });
+                        const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload) });
                         if (!response.ok) throw new Error("HTTP " + response.status);
                         responseData = await response.json();
-                        break; 
+                        break;
                     } catch (error) {
                         retries++;
                         if (retries >= 5) throw error;
@@ -822,8 +904,16 @@
                         delay *= 2;
                     }
                 }
-                
-                const text = responseData.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                let text;
+                if (provider === 'openai') {
+                    text = responseData.choices?.[0]?.message?.content;
+                } else if (provider === 'anthropic') {
+                    text = responseData.content?.[0]?.text;
+                } else {
+                    text = responseData.candidates?.[0]?.content?.parts?.[0]?.text;
+                }
+
                 if (text) {
                     const formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-bold">$1</strong>');
                     resultDiv.innerHTML = formattedText;
@@ -833,7 +923,7 @@
                 }
             } catch (error) {
                 console.error(error);
-                resultDiv.innerHTML = '<span class="text-[#FF003C] font-bold">ERROR_CONNECTION_FAILED:</span> AI-kjernen er for øyeblikket offline. Prøv igjen senere.';
+                resultDiv.innerHTML = '<span class="text-[#FF003C] font-bold">ERROR_CONNECTION_FAILED:</span> AI-kjernen er for øyeblikket offline. Sjekk API-nøkkel og prøv igjen.';
                 resultDiv.classList.remove('hidden');
             } finally {
                 button.disabled = false;
@@ -847,7 +937,7 @@
             const chorus = document.getElementById('aiGenreChorus').value;
             const sys = "Du er Dr. Jon-Arve Constantine, forfatter av 'Loopens Tyranni og Frihet'. Din oppgave er å gi brutalt presise, tekniske produksjonsråd. Svar på norsk med en klinisk, cyberpunk-estetikk. Bruk konsepter som timbral modulasjon, EQ-utskjæring, og subtraktiv dynamikk. Forby akkordbytter.";
             const usr = "Akkord-DNA: " + chords + "\nSjanger Start: " + verse + "\nSjanger Mål: " + chorus + "\n\nGi meg den tekniske strategien for å instrumentere Pre-Chorus pivoten, og eksakt hvordan 'Droppet' må utføres i DAW for maksimal auditiv sjokk-verdi.";
-            await callGeminiAPI(sys, usr, document.getElementById('aiResult'), document.getElementById('aiLoading'), document.getElementById('aiGenerateBtn'));
+            await callAI(sys, usr, document.getElementById('aiResult'), document.getElementById('aiLoading'), document.getElementById('aiGenerateBtn'));
         }
 
         async function handleAILyrics() {
@@ -856,7 +946,7 @@
             const genre2 = document.getElementById('aiGenre2').value;
             const sys = "Du er Dr. Jon-Arve Constantine. Illustrer 'Lyrisk Ledemotiv'. Svar på norsk med en akademisk, mørk og teknisk tone.";
             const usr = "Konseptuell kjerne: " + theme + "\nModus A: " + genre1 + "\nModus B: " + genre2 + "\n\nKonstruer en rå verselinje for Modus A, og vis nøyaktig hvordan denne linjen og dens intensjon muterer i Modus B. Forklar prosodisk hvorfor dette binder den konseptuelle arkitekturen sammen.";
-            await callGeminiAPI(sys, usr, document.getElementById('aiLyricsResult'), document.getElementById('aiLyricsLoading'), document.getElementById('aiLyricsBtn'));
+            await callAI(sys, usr, document.getElementById('aiLyricsResult'), document.getElementById('aiLyricsLoading'), document.getElementById('aiLyricsBtn'));
         }
 
         async function handleAILyricAnalyzer() {
@@ -865,7 +955,7 @@
             const focus = document.getElementById('aiAnalyzeFocus').value;
             const sys = "Du er Dr. Jon-Arve Constantine. Analyser sangtekster basert på din teori i Kapittel 6 av 'Loopens Tyranni'. Svar akademisk, knusende presist og i en 'matrix'-aktig tone på norsk.";
             const usr = "Kildekode (Tekst):\n\n" + lyrics + "\n\nUtfør dybdeanalyse med spesifikt fokus på: " + focus + ".\nGi meg konkrete ingeniør-råd for hvordan prosodien kan maksimeres før et massivt musikalsk dropp.";
-            await callGeminiAPI(sys, usr, document.getElementById('aiAnalyzeResult'), document.getElementById('aiAnalyzeLoading'), document.getElementById('aiLyricAnalyzerBtn'));
+            await callAI(sys, usr, document.getElementById('aiAnalyzeResult'), document.getElementById('aiAnalyzeLoading'), document.getElementById('aiLyricAnalyzerBtn'));
         }
 
         async function handleAIDawMixer() {
@@ -873,7 +963,7 @@
             const chorus = document.getElementById('aiDawChorus').value || "Mangler Refreng-data";
             const sys = "Du er Dr. Jon-Arve Constantine, en nådeløs mester i DAW-routing og frekvensmaskering (Kapittel 7). Svar teknisk og direkte på norsk. Bruk Hz-verdier, filter-typer (LPF/HPF), og kompresjonsrater.";
             const usr = "Oppdrag: Skap en massiv overgang over en låst loop.\nVers-kilder: " + verse + "\nRefreng-kilder: " + chorus + "\n\nKompiler den nøyaktige mikse- og automasjonsplanen. Spesifiser hvor subtraktiv dynamikk og sidechain skal anvendes for å unngå frekvens-kollisjon (mud).";
-            await callGeminiAPI(sys, usr, document.getElementById('aiDawResult'), document.getElementById('aiDawLoading'), document.getElementById('aiDawMixerBtn'));
+            await callAI(sys, usr, document.getElementById('aiDawResult'), document.getElementById('aiDawLoading'), document.getElementById('aiDawMixerBtn'));
         }
 
         async function handleAIArranger() {
@@ -881,7 +971,7 @@
             const vibe = document.getElementById('aiArrVibe').value || "Generisk energi";
             const sys = "Du er algoritme-hjernen til Dr. Jon-Arve Constantine. Design en lineær tidslinje for et musikkspor som er låst i en statisk akkord-loop. Svar presist på norsk, bruk et tabulært eller punktbasert tids-format.";
             const usr = "Total kjøretid: " + duration + "\nKonsept/Energi: " + vibe + "\n\nKompiler en komplett arrangement-tidslinje. Hvor skjer the 'Pre-Chorus Pivot'? Når introduseres nye teksturelle lag? Når skjer 'The Vacuum' for maksimal impact?";
-            await callGeminiAPI(sys, usr, document.getElementById('aiArrResult'), document.getElementById('aiArrLoading'), document.getElementById('aiArrangerBtn'));
+            await callAI(sys, usr, document.getElementById('aiArrResult'), document.getElementById('aiArrLoading'), document.getElementById('aiArrangerBtn'));
         }
 
         async function handleAISynth() {
@@ -890,7 +980,7 @@
             const type = document.getElementById('aiSynthType').value;
             const sys = "Du er Dr. Jon-Arve Constantine sin lyd-arkitekt. Oversett abstrakte emosjoner til kalde, harde synth-parametere (Oscillator routing, ADSR-tider, Filter cutoffs, LFO-hastigheter). Svar maskinelt og systematisk på norsk.";
             const usr = "Syntese-motor: " + type + ".\nMål (Emosjon/Lyd): " + desc + "\n\nGenerer det nøyaktige parameter-kartet for å oppnå denne auditive tilstanden.";
-            await callGeminiAPI(sys, usr, document.getElementById('aiSynthResult'), document.getElementById('aiSynthLoading'), document.getElementById('aiSynthBtn'));
+            await callAI(sys, usr, document.getElementById('aiSynthResult'), document.getElementById('aiSynthLoading'), document.getElementById('aiSynthBtn'));
         }
 
         async function handleAIChat() {
@@ -899,7 +989,7 @@
             const sys = "Du er Dr. Jon-Arve Constantine (eller hans bevissthets-kopi lastet opp i nettskyen). Du er en ekspert på moderne loop-basert musikk, Neo-Riemannsk analyse og psychoakustikk. Svar engasjerende, selvsikkert, lett kynisk, og på norsk.";
             const usr = "En leser spør: \"" + question + "\"\nSvar direkte:";
             const resDiv = document.getElementById('aiChatResult');
-            await callGeminiAPI(sys, usr, resDiv, document.getElementById('aiChatLoading'), document.getElementById('aiChatBtn'));
+            await callAI(sys, usr, resDiv, document.getElementById('aiChatLoading'), document.getElementById('aiChatBtn'));
             setTimeout(() => {
                 if(!resDiv.innerHTML.includes('ERROR')) {
                     resDiv.innerHTML = "<p class='cyber-font text-[#00F0FF] mb-6 border-b border-[#333] pb-4'>&gt; QUERY_LOG: " + question + "</p>" + resDiv.innerHTML;
@@ -915,7 +1005,7 @@
 
             const sys = "Du er Dr. Jon-Arve Constantine sine analyse-subrutiner. Evaluer forfatterens egne komposisjoner opp mot teorien i 'Loopens Tyranni'. Vær kritisk, stolt og akademisk på norsk.";
             const usr = "Analyser kildekode (Spor) fra mitt arkiv.\nTittel: " + title + "\nFormat: " + type + "\nAkustisk Logg: " + desc + "\n\nDekod dette sporet. Hvordan validerer dette opptaket teoriene om timbral ekspansjon, prosodi eller subtraktiv dynamikk over en statisk grid?";
-            await callGeminiAPI(sys, usr, document.getElementById('aiPortfolioResult'), document.getElementById('aiPortfolioLoading'), document.getElementById('aiPortfolioBtn'));
+            await callAI(sys, usr, document.getElementById('aiPortfolioResult'), document.getElementById('aiPortfolioLoading'), document.getElementById('aiPortfolioBtn'));
         }
 
         document.addEventListener('DOMContentLoaded', initApp);
